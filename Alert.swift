@@ -1,9 +1,6 @@
 //
-//  Aler.swift
+//  Alert.swift
 //  Antonio Lobato
-//
-//  Created by Antonio Lobato on 2/25/16.
-//  Copyright © 2016 Casare. All rights reserved.
 //
 
 import Foundation
@@ -53,7 +50,6 @@ class Aler: NSObject {
     var transparency: UIView!
     var blurEffectView: UIImageView!
     var callback: AlertReturnBlock!
-    var isConfirm = false
 
     var trans: Bool {
         get {
@@ -87,8 +83,7 @@ class Aler: NSObject {
         overlay: AlertOverlay! = nil,
         callback: AlertReturnBlock! = nil)
     {
-        self.callback = callback
-        show(title, sub: sub, okText: okText, cancelText: cancelText, overlay: overlay, type: .Success)
+        show(title, sub: sub, okText: okText, cancelText: cancelText, overlay: overlay, callback: callback, type: .Success)
     }
 
     func warning(
@@ -99,8 +94,7 @@ class Aler: NSObject {
         overlay: AlertOverlay! = nil,
         callback: AlertReturnBlock! = nil)
     {
-        self.callback = callback
-        show(title, sub: sub, okText: okText, cancelText: cancelText, overlay: overlay, type: .Warning)
+        show(title, sub: sub, okText: okText, cancelText: cancelText, overlay: overlay, callback: callback, type: .Warning)
     }
 
     func error(
@@ -111,8 +105,7 @@ class Aler: NSObject {
         overlay: AlertOverlay! = nil,
         callback: AlertReturnBlock! = nil)
     {
-        self.callback = callback
-        show(title, sub: sub, okText: okText, cancelText: cancelText, overlay: overlay, type: .Error)
+        show(title, sub: sub, okText: okText, cancelText: cancelText, overlay: overlay, callback: callback, type: .Error)
     }
 
     func confirm(
@@ -123,25 +116,29 @@ class Aler: NSObject {
         overlay: AlertOverlay! = nil,
         callback: AlertReturnBlock! = nil)
     {
-        isConfirm = true
-        self.callback = callback
-        show(title, sub: sub, okText: okText, cancelText: cancelText, overlay: overlay, type: .Confirm)
+        show(title, sub: sub, okText: okText, cancelText: cancelText, overlay: overlay, callback: callback, type: .Confirm)
     }
 
     func show(title: String! = nil,
-              sub: String,
-              type: AlertType = .Success,
-              okText: String = "OK",
-              cancelText: String = "Cancel",
-              var overlay: AlertOverlay! = nil,
-              callback: AlertReturnBlock! = nil
-    ){
+        sub: String,
+        type: AlertType = .Success,
+        var okText: String! = nil,
+        var cancelText: String! = nil,
+        var overlay: AlertOverlay! = nil,
+        callback: AlertReturnBlock! = nil)
+    {
+        box = nil
+        transparency = nil
+        blurEffectView = nil
+
+        self.callback = callback
+
+        if okText == nil { okText = "OK" }
+        if cancelText == nil { cancelText = "Cancel" }
+        if overlay == nil { overlay = .BlurDark }
+
         let winSize = UIScreen.mainScreen().bounds
         let screen = UIApplication.sharedApplication().windows.first!.rootViewController!.view!
-
-        if overlay == nil {
-            overlay = .BlurDark
-        }
 
         //
         // Transparency / Blur
@@ -164,7 +161,7 @@ class Aler: NSObject {
         //
 
         box = UIView(frame: CGRect(x: 25, y: 0, width: winSize.width - 50, height: 0))
-//        box.nuiClass = "alertBox"
+        box.nuiClass = "alertBox"
         box.layer.cornerRadius = 2
         box.layer.masksToBounds = true
         box.alpha = 0
@@ -228,9 +225,9 @@ class Aler: NSObject {
 
         var cancelBtn: UIButton!
 
-        if isConfirm {
+        if type == .Confirm {
             cancelBtn = UIButton(frame: CGRect(x: box.frame.width/2 - btnWidth - 5, y: subTitLbl.bottom + 15, width: btnWidth, height: btnHeight))
-//            cancelBtn.nuiClass = "ButtonBig:ButtonBigLightWithBorder"
+            cancelBtn.nuiClass = "ButtonBig:ButtonBigLightWithBorder"
             cancelBtn.setTitle(cancelText, forState: .Normal)
             cancelBtn.tag = 1
             cancelBtn.addTarget(self, action: "btnTapped:", forControlEvents: .TouchUpInside)
@@ -240,14 +237,14 @@ class Aler: NSObject {
 
         var okBtnX: CGFloat!
 
-        if isConfirm {
+        if type == .Confirm {
             okBtnX = box.frame.width/2 + 5
         } else {
             okBtnX = box.frame.width/2 - btnWidth/2
         }
 
         let okBtn = UIButton(frame: CGRect(x: okBtnX, y: subTitLbl.bottom + 15, width: btnWidth, height: btnHeight))
-//        okBtn.nuiClass = "ButtonBig"
+        okBtn.nuiClass = "ButtonBig"
         okBtn.setTitle(okText, forState: .Normal)
         okBtn.tag = 0
         okBtn.addTarget(self, action: "btnTapped:", forControlEvents: .TouchUpInside)
@@ -290,36 +287,34 @@ class Aler: NSObject {
             self.blurEffectView?.layer.opacity = 0
             self.transparency?.layer.opacity = 0
 
-        }, completion: { (value: Bool) in
-            UIView.animateWithDuration(0.1, animations: {() in
-                self.box.layer.opacity = 0
+            }, completion: { (value: Bool) in
+                UIView.animateWithDuration(0.1, animations: {() in
+                    self.box.layer.opacity = 0
 
             }, completion: { (value: Bool) in
-                self.box.removeFromSuperview()
-                self.blurEffectView?.removeFromSuperview()
-                self.transparency?.removeFromSuperview()
-                if self.callback != nil {
-                    self.callback(selection: selection)
-                }
+                    self.box.removeFromSuperview()
+                    self.blurEffectView?.removeFromSuperview()
+                    self.transparency?.removeFromSuperview()
+                    self.callback?(selection: selection)
             })
         })
     }
-
+    
     func mkLbl(text: String, y: CGFloat = 0, nuiClass: String! = nil) -> UILabel {
         let lbl = UILabel(frame: CGRect(x: 20, y: y, width: box.frame.width - 40, height: 0))
-
-//        if nuiClass != nil {lbl.nuiClass = nuiClass}
+        
+        if nuiClass != nil {lbl.nuiClass = nuiClass}
 
         lbl.numberOfLines = 0
         lbl.lineBreakMode = .ByWordWrapping
         lbl.textAlignment = .Center
         lbl.text = text
-
+        
         let originalWidth = lbl.frame.width
         lbl.sizeToFit()
         let f = lbl.frame
         lbl.frame = CGRect(x: f.origin.x, y: f.origin.y, width: originalWidth, height: lbl.frame.height)
-
+        
         return lbl
     }
 }
