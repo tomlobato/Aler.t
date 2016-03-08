@@ -6,10 +6,26 @@ Dependencies:
 - Optionally NUI, for styling elements.
 
 Features:
-- User selection callback.
+- Callback with user made selection.
 - OK and optionally Cancel button.
 - NUI classes for styling.
 - Overlay with blur and/or partial transparency.
+
+# Install
+
+Just copy Alert.swift to your projet. 
+Add to your Podfile:
+
+```ruby
+pod 'NUI'
+pod 'FXBlurView'
+```
+
+Then
+
+```bash
+pod install
+```
 
 # Usage:
 
