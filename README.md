@@ -1,6 +1,3 @@
-
-Simple Alert Class in Swift 2.
-
 Dependencies:
 - FXBlurView for blured overlay.
 - Optionally NUI, for styling elements.
