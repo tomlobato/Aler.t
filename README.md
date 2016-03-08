@@ -14,14 +14,15 @@ Features:
 # Install
 
 Just copy Alert.swift to your projet. 
-Add to your Podfile:
+
+Then add to your Podfile:
 
 ```ruby
 pod 'NUI'
 pod 'FXBlurView'
 ```
 
-Then
+And
 
 ```bash
 pod install
